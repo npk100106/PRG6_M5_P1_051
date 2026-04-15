@@ -14,24 +14,22 @@ const initialHistory = [
 ];
 
 const Home = () => {
-    // --- STATE MANAGEMENT ---
     const [historyData, setHistoryData] = useState(initialHistory);
     const [isCheckedIn, setIsCheckedIn] = useState(false);
     const [currentTime, setCurrentTime] = useState("Memuat jam...");
     
-    // LANGKAH 2: State untuk Catatan & useRef untuk referensi kolom input
     const [note, setNote] = useState('');
     const noteInputRef = useRef(null);
 
-    // LANGKAH 3: Optimasi Komputasi dengan useMemo
+    // useMemo untuk statistik
     const attendanceStats = useMemo(() => {
-        // Teks ini hanya muncul jika historyData berubah (tidak setiap detik saat jam update)
         console.log("Menghitung ulang statistik kehadiran...");
         const presentCount = historyData.filter(item => item.status === 'Present').length;
         const absentCount = historyData.filter(item => item.status === 'Absent').length;
         return { totalPresent: presentCount, totalAbsent: absentCount };
     }, [historyData]);
 
+    // Jam realtime
     useEffect(() => {
         const timer = setInterval(() => {
             const timeString = new Date().toLocaleTimeString('id-ID', {
@@ -42,17 +40,16 @@ const Home = () => {
         return () => clearInterval(timer);
     }, []);
 
-    // LANGKAH 4: Modifikasi Logika Check-In (Validasi Catatan)
+    // Check-in logic
     const handleCheckIn = () => {
         if (isCheckedIn) {
             Alert.alert("Perhatian", "Anda sudah melakukan Check In.");
             return;
         }
 
-        // Validasi Catatan menggunakan useRef
         if (note.trim() === '') {
             Alert.alert("Peringatan", "Catatan kehadiran wajib diisi!");
-            noteInputRef.current.focus(); // Fokus otomatis ke kolom input
+            noteInputRef.current.focus();
             return;
         }
 
@@ -90,6 +87,8 @@ const Home = () => {
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.contents}>
+                
+                {/* Header */}
                 <View style={styles.headerRow}>
                     <Text style={styles.title}>Attendance App</Text>
                     <Text style={styles.clockText}>{currentTime}</Text>
@@ -107,13 +106,12 @@ const Home = () => {
                     </View>
                 </View>
 
-                {/* Today's Class */}
+                {/* Class Card */}
                 <View style={styles.ClassCard}>
                     <Text style={styles.subtitle}>Today's Class</Text>
                     <Text>Mobile Programming</Text>
                     <Text>08:00 - 10:00 | Lab 3</Text>
-                    
-                    {/* LANGKAH 5: Input Catatan (Hanya tampil jika belum check-in) */}
+
                     {!isCheckedIn && (
                         <TextInput
                             ref={noteInputRef}
@@ -123,7 +121,7 @@ const Home = () => {
                             onChangeText={setNote}
                         />
                     )}
-                    
+
                     <TouchableOpacity 
                         style={[styles.button, isCheckedIn ? styles.buttonDisabled : styles.buttonActive]}
                         onPress={handleCheckIn}
@@ -135,18 +133,24 @@ const Home = () => {
                     </TouchableOpacity>
                 </View>
 
-                {/* LANGKAH 5: Statistik Kehadiran (Hasil useMemo) */}
+                {/* ✅ BAGIAN SESUAI GAMBAR */}
                 <View style={styles.statsCard}>
                     <View style={styles.statBox}>
-                        <Text style={styles.statNumber}>{attendanceStats.totalPresent}</Text>
+                        <Text style={styles.statNumber}>
+                            {attendanceStats.totalPresent}
+                        </Text>
                         <Text style={styles.statLabel}>Total Present</Text>
                     </View>
+
                     <View style={styles.statBox}>
-                        <Text style={[styles.statNumber, { color: 'red' }]}>{attendanceStats.totalAbsent}</Text>
+                        <Text style={[styles.statNumber, { color: 'red' }]}>
+                            {attendanceStats.totalAbsent}
+                        </Text>
                         <Text style={styles.statLabel}>Total Absent</Text>
                     </View>
                 </View>
 
+                {/* History */}
                 <Text style={styles.subtitle}>Attendance History</Text>
                 <FlatList
                     data={historyData}
@@ -159,30 +163,76 @@ const Home = () => {
     );
 };
 
-// LANGKAH 6: Tambahan Styling Akhir
+// Styling
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: "#f5f5f5" },
     contents: { padding: 20 },
-    headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+
+    headerRow: { 
+        flexDirection: 'row', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        marginBottom: 20 
+    },
+
     title: { fontSize: 24, fontWeight: "bold" },
-    clockText: { fontSize: 16, fontWeight: 'bold', color: '#007AFF', fontVariant: ['tabular-nums'] },
-    card: { flexDirection: "row", backgroundColor: "white", padding: 15, borderRadius: 10, marginBottom: 20 },
-    icon: { width: 60, height: 60, borderRadius: 30, backgroundColor: "#eee", alignItems: "center", justifyContent: "center", marginRight: 15 },
+    clockText: { 
+        fontSize: 16, 
+        fontWeight: 'bold', 
+        color: '#007AFF', 
+        fontVariant: ['tabular-nums'] 
+    },
+
+    card: { 
+        flexDirection: "row", 
+        backgroundColor: "white", 
+        padding: 15, 
+        borderRadius: 10, 
+        marginBottom: 20 
+    },
+
+    icon: { 
+        width: 60, height: 60, borderRadius: 30, 
+        backgroundColor: "#eee", 
+        alignItems: "center", 
+        justifyContent: "center", 
+        marginRight: 15 
+    },
+
     name: { fontSize: 18, fontWeight: "bold" },
-    ClassCard: { backgroundColor: "white", padding: 15, borderRadius: 10, marginBottom: 20 },
+
+    ClassCard: { 
+        backgroundColor: "white", 
+        padding: 15, 
+        borderRadius: 10, 
+        marginBottom: 20 
+    },
+
     subtitle: { fontSize: 18, fontWeight: "bold", marginBottom: 10 },
+
     button: { marginTop: 10, padding: 12, borderRadius: 8, alignItems: "center" },
     buttonActive: { backgroundColor: "#007AFF" },
     buttonDisabled: { backgroundColor: "#A0C4FF" },
     buttonText: { color: "white", fontWeight: "bold" },
-    Item: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", backgroundColor: "white", padding: 12, borderRadius: 8, marginBottom: 8 },
+
+    Item: { 
+        flexDirection: "row", 
+        justifyContent: "space-between", 
+        alignItems: "center", 
+        backgroundColor: "white", 
+        padding: 12, 
+        borderRadius: 8, 
+        marginBottom: 8 
+    },
+
     course: { fontSize: 16 },
     date: { fontSize: 12, color: "gray" },
+
     present: { color: "green", fontWeight: "bold" },
     absent: { color: "red", fontWeight: "bold" },
+
     statusRow: { flexDirection: "row", alignItems: "center" },
-    
-    // Gaya Baru Langkah 6
+
     inputCatatan: {
         borderWidth: 1,
         borderColor: '#ccc',
@@ -191,6 +241,7 @@ const styles = StyleSheet.create({
         marginTop: 15,
         backgroundColor: '#fafafa'
     },
+
     statsCard: {
         flexDirection: 'row',
         justifyContent: 'space-around',
@@ -199,8 +250,11 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         marginBottom: 20,
     },
+
     statBox: { alignItems: 'center' },
+
     statNumber: { fontSize: 24, fontWeight: 'bold', color: 'green' },
+
     statLabel: { fontSize: 14, color: 'gray' },
 });
 
